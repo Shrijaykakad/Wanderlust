@@ -92,13 +92,13 @@ app.get(
   res.render("listings/show.ejs", {listing});
 }));
 
-app.get(/(.*)/, (req,res) =>{
-  res.send("Page not found!!")
+app.get(/(.*)/, (req, res, next) =>{
+  next(new ExpressError(500, "Page not found"));
 })
 
 app.use((err, req, res, next) => {
-let { statusCode, message } = err;
-res.status(statusCode).send(message);
+let { status, message } = err;
+res.render("error.ejs", {err});
 })
 
 app.listen(port, () => {
