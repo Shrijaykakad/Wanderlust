@@ -8,9 +8,9 @@ const Listing = require("./Models/listing.js");
 const listData = require("./init/data.js");
 const methodOverride = require('method-override');
 const ejsmate = require('ejs-mate');
-const warpAsync = require("./utils/wrapAsync.js");
 const wrapAsync = require("./utils/wrapAsync.js");
-const ExpressError = require("./utils/ExpressError.js")
+const ExpressError = require("./utils/ExpressError.js");
+const listingSchema = require("./schema.js");
 
 main().catch(err => console.log(err));
 
@@ -25,10 +25,18 @@ app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, "public")));
 app.engine('ejs', ejsmate);
 
+const validateListing = (req, res, next) => {
+  const { error } = listingSchema.validate(req.body);
+  if(error){
+    return next(new ExpressError(400, error.details[0].message));
+  }else{
+    next();
+  }
+}
 
-//Index Route
+// Index Route
 app.get(
-  "/listings", 
+  "/listings",
   wrapAsync(
   async(req, res) => {
   let allListing = await Listing.find({})
@@ -38,17 +46,18 @@ app.get(
 //New Route
 app.get(
   "/listings/new",
-  wrapAsync(
+  // wrapAsync(
   (req, res) => {
   res.render("listings/new.ejs");
-}));
+});
 
 //Create Route
 app.post(
   "/listings",
+  validateListing,
   wrapAsync(
   async(req, res, next) => {
-    let newListing = await new Listing(req.body.listing);
+  let newListing = await new Listing(req.body.listing);
   await newListing.save();
   res.redirect("/listings");
 }));
@@ -65,6 +74,7 @@ app.get(
 
 app.put(
   "/listings/:id",
+  validateListing,
   wrapAsync(
   async(req, res) => {
   let { id } = req.params;
@@ -74,7 +84,7 @@ app.put(
 
 //Delete Route
 app.delete(
-  "/listings/:id/delete",
+  "/listings/:id",
   wrapAsync(
   async(req, res) => {
   let { id } = req.params;
@@ -97,7 +107,7 @@ app.get(/(.*)/, (req, res, next) =>{
 })
 
 app.use((err, req, res, next) => {
-let { status, message } = err;
+let { status = 500, message="Unknown Error Found" } = err;
 res.render("error.ejs", {err});
 })
 
