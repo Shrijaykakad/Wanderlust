@@ -6,6 +6,7 @@ const Listing = require("../Models/listing.js");
 const { listingSchema } = require("../schema.js");
 
 const validateListing = (req, res, next) => {
+  console.log(req.body);
   const { error } = listingSchema.validate(req.body);
   if(error){
     next(new ExpressError(400, error.details[0].message));
@@ -26,10 +27,10 @@ router.get(
 //New Route
 router.get(
   "/new",
-  // wrapAsync(
+  wrapAsync(
   (req, res) => {
   res.render("listings/new.ejs");
-});
+}));
 
 //Create Route
 router.post(
