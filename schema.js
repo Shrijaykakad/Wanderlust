@@ -14,7 +14,6 @@ const listingSchema = Joi.object({
         location: Joi.string().required()
     }).required()
 });
-module.exports= { listingSchema }
 
 const reviewSchema = Joi.object({
   review: Joi.object({
@@ -23,4 +22,4 @@ const reviewSchema = Joi.object({
   }).required(),
 });
 
-module.exports ={ reviewSchema };
+module.exports ={ listingSchema, reviewSchema };

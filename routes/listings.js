@@ -6,10 +6,9 @@ const Listing = require("../Models/listing.js");
 const { listingSchema } = require("../schema.js");
 
 const validateListing = (req, res, next) => {
-  console.log(req.body);
   const { error } = listingSchema.validate(req.body);
   if(error){
-    next(new ExpressError(400, error.details[0].message));
+    return next(new ExpressError(400, error.details[0].message));
   }else{
     next();
   }
@@ -27,10 +26,9 @@ router.get(
 //New Route
 router.get(
   "/new",
-  wrapAsync(
   (req, res) => {
   res.render("listings/new.ejs");
-}));
+});
 
 //Create Route
 router.post(
@@ -40,6 +38,7 @@ router.post(
   async(req, res, next) => {
   let newListing = await new Listing(req.body.listing);
   await newListing.save();
+  req.flash("success", "New Listing Created");
   res.redirect("/listings");
 }));
 
@@ -70,6 +69,7 @@ router.delete(
   async(req, res) => {
   let { id } = req.params;
   await Listing.findByIdAndDelete(id);
+  req.flash("success", "Listing Deleted");
   res.redirect(`/listings`);
 }));
 
@@ -80,6 +80,10 @@ router.get(
   async(req, res) => {
   let{ id } = req.params;
   let listing = await Listing.findById(id).populate("reviews");
+  if(!listing){
+    req.flash("error", "Listing does not exist");
+    return res.redirect(`/listings`);
+  }
   res.render("listings/show.ejs", {listing});
 }));
 
